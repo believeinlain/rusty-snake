@@ -7,15 +7,15 @@
         {
             "type": "lldb",
             "request": "launch",
-            "name": "Debug executable 'rust-hello-world'",
+            "name": "Debug executable 'rusty-snake'",
             "cargo": {
                 "args": [
                     "build",
-                    "--bin=rust-hello-world",
-                    "--package=rust-hello-world"
+                    "--bin=rusty-snake",
+                    "--package=rusty-snake"
                 ],
                 "filter": {
-                    "name": "rust-hello-world",
+                    "name": "rusty-snake",
                     "kind": "bin"
                 }
             },
@@ -25,16 +25,16 @@
         {
             "type": "lldb",
             "request": "launch",
-            "name": "Debug unit tests in executable 'rust-hello-world'",
+            "name": "Debug unit tests in executable 'rusty-snake'",
             "cargo": {
                 "args": [
                     "test",
                     "--no-run",
-                    "--bin=rust-hello-world",
-                    "--package=rust-hello-world"
+                    "--bin=rusty-snake",
+                    "--package=rusty-snake"
                 ],
                 "filter": {
-                    "name": "rust-hello-world",
+                    "name": "rusty-snake",
                     "kind": "bin"
                 }
             },
