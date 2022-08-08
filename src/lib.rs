@@ -5,6 +5,9 @@ use winit::{
     window::{Window, WindowBuilder},
 };
 
+#[cfg(target_arch="wasm32")]
+use wasm_bindgen::prelude::*;
+
 struct Handle {
     surface: wgpu::Surface,
     device: wgpu::Device,
@@ -156,8 +159,8 @@ async fn initialize_wgpu(window: &Window) -> (Handle, State) {
 
     // We don't need to configure the texture view much, so let's
     // let wgpu define it.
-    let diffuse_texture_view = diffuse_texture.create_view(&wgpu::TextureViewDescriptor::default());
-    let diffuse_sampler = device.create_sampler(&wgpu::SamplerDescriptor {
+    let _diffuse_texture_view = diffuse_texture.create_view(&wgpu::TextureViewDescriptor::default());
+    let _diffuse_sampler = device.create_sampler(&wgpu::SamplerDescriptor {
         address_mode_u: wgpu::AddressMode::ClampToEdge,
         address_mode_v: wgpu::AddressMode::ClampToEdge,
         address_mode_w: wgpu::AddressMode::ClampToEdge,
@@ -304,9 +307,17 @@ impl State {
     }
 }
 
+#[cfg_attr(target_arch="wasm32", wasm_bindgen(start))]
 pub async fn run() {
     // Window setup
-    env_logger::init();
+    cfg_if::cfg_if! {
+        if #[cfg(target_arch = "wasm32")] {
+            std::panic::set_hook(Box::new(console_error_panic_hook::hook));
+            console_log::init_with_level(log::Level::Warn).expect("Couldn't initialize logger");
+        } else {
+            env_logger::init();
+        }
+    }
     let event_loop = EventLoop::new();
     let window = match WindowBuilder::new().build(&event_loop) {
         Ok(window) => window,
@@ -314,10 +325,29 @@ pub async fn run() {
     };
     window.set_min_inner_size(Some(winit::dpi::PhysicalSize::<u32>::new(100, 100)));
 
+    #[cfg(target_arch = "wasm32")]
+    {
+        // Winit prevents sizing with CSS, so we have to set
+        // the size manually when on web.
+        // use winit::dpi::PhysicalSize;
+        // window.set_inner_size(PhysicalSize::new(450, 400));
+        
+        use winit::platform::web::WindowExtWebSys;
+        web_sys::window()
+            .and_then(|win| win.document())
+            .and_then(|doc| {
+                let dst = doc.get_element_by_id("wasm-rusty-snake")?;
+                let canvas = web_sys::Element::from(window.canvas());
+                dst.append_child(&canvas).ok()?;
+                Some(())
+            })
+            .expect("Couldn't append canvas to document body.");
+    }
+
     let (handle, mut state) = initialize_wgpu(&window).await;
 
     // Event loop
-    event_loop.run(move |event, _, control_flow| {
+    event_loop.run(move |event, _target, control_flow| {
         match event {
             Event::WindowEvent {
                 ref event,

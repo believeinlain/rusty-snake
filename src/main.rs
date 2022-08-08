@@ -1,5 +1,4 @@
-mod window;
-
+mod lib;
 fn main() {
-    pollster::block_on(window::run());
+    pollster::block_on(lib::run());
 }
